@@ -15,6 +15,25 @@ from config import (
 # Configuration for query cache
 QUERY_CACHE_FILE = "search_query_cache.json"
 
+FALLBACK_MODEL = "claude-sonnet-5-5"
+_resolved_model = None
+
+
+def get_latest_sonnet(client):
+    """Return the newest Sonnet model ID from the Models API, falling back to FALLBACK_MODEL."""
+    global _resolved_model
+    if _resolved_model:
+        return _resolved_model
+    try:
+        sonnets = [m for m in client.models.list() if m.id.startswith("claude-sonnet")]
+        _resolved_model = max(sonnets, key=lambda m: m.created_at).id if sonnets else FALLBACK_MODEL
+    except Exception as e:
+        print(f"Could not list models ({e}); using {FALLBACK_MODEL}")
+        _resolved_model = FALLBACK_MODEL
+    print(f"Using model: {_resolved_model}")
+    return _resolved_model
+
+
 def load_query_cache():
     """
     Load existing query translations from cache file
@@ -101,9 +120,8 @@ def generate_search_strategy(user_query, max_queries=5):
     
     try:
         response = client.messages.create(
-            model="claude-sonnet-5-5",
+            model=get_latest_sonnet(client),
             max_tokens=200,
-            temperature=0.3,
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}]
         )
@@ -360,9 +378,8 @@ def synthesize_news(articles, original_query, max_headlines=10):
     
     try:
         response = client.messages.create(
-            model="claude-sonnet-5-5",
+            model=get_latest_sonnet(client),
             max_tokens=2000,
-            temperature=0.3,
             system=system_prompt,
             messages=[{"role": "user", "content": user_prompt}]
         )
