@@ -101,7 +101,7 @@ def generate_search_strategy(user_query, max_queries=5):
     
     try:
         response = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-5-5",
             max_tokens=200,
             temperature=0.3,
             system=system_prompt,
@@ -360,7 +360,7 @@ def synthesize_news(articles, original_query, max_headlines=10):
     
     try:
         response = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-5-5",
             max_tokens=2000,
             temperature=0.3,
             system=system_prompt,
